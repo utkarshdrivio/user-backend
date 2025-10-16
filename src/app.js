@@ -16,20 +16,21 @@ app.get('/api/users', async (req, res) => {
   try {
     const { page = 1, limit = 10, search = '' } = req.query;
     const offset = (page - 1) * limit;
+    console.log('Search term:', search);
     
     const whereClause = search ? {
       [Op.or]: [
         { first_name: { [Op.like]: `%${search}%` } },
         { last_name: { [Op.like]: `%${search}%` } },
         { email: { [Op.like]: `%${search}%` } },
-        {role: { [Op.like]: `%${search}%` }},
-        {department: { [Op.like]: `%${search}%` }},
         sequelize.where(
           sequelize.fn('CONCAT', sequelize.col('first_name'), ' ', sequelize.col('last_name')),
           { [Op.like]: `%${search}%` }
         )
       ]
     } : {};
+    console.log('Where clause:', JSON.stringify(whereClause, null, 2));
+
     const { count, rows } = await User.findAndCountAll({
       where: whereClause,
       include: [{ 
@@ -38,7 +39,7 @@ app.get('/api/users', async (req, res) => {
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['id', 'DESC']]
+      order: [['id', 'ASC']]
     });
     
     res.json({
@@ -55,10 +56,12 @@ app.get('/api/users', async (req, res) => {
 // Get user by ID
 app.get('/api/users/:id', async (req, res) => {
   try {
+    console.log('Fetching user with ID:', req.params.id);
     const user = await User.findOne({
       where: { id: req.params.id },
       include: [{ model: Department, as: 'department' }]
     });
+    console.log('Found user:', user ? 'Yes' : 'No');
     if (user) {
       res.json(user);
     } else {
@@ -82,15 +85,17 @@ app.post('/api/users', async (req, res) => {
 // Update user
 app.put('/api/users/:id', async (req, res) => {
   try {
-    await User.update(req.body, {
+    const [updated] = await User.update(req.body, {
       where: { id: req.params.id }
     });
-    
-    const user = await User.findByPk(req.params.id, {
-      include: [{ model: Department, as: 'department' }]
-    });
-    
-    res.json(user);
+    if (updated) {
+      const user = await User.findByPk(req.params.id, {
+        include: [{ model: Department, as: 'department' }]
+      });
+      res.json(user);
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
