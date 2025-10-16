@@ -16,7 +16,6 @@ app.get('/api/users', async (req, res) => {
   try {
     const { page = 1, limit = 10, search = '' } = req.query;
     const offset = (page - 1) * limit;
-    console.log('Search term:', search);
     
     const whereClause = search ? {
       [Op.or]: [
@@ -83,23 +82,19 @@ app.post('/api/users', async (req, res) => {
 // Update user
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const [updated] = await User.update(req.body, {
+    await User.update(req.body, {
       where: { id: req.params.id }
     });
-    if (updated) {
-      const user = await User.findByPk(req.params.id, {
-        include: [{ model: Department, as: 'department' }]
-      });
-      res.json(user);
-    } else {
-      res.status(404).json({ error: 'User not found' });
-    }
+    
+    const user = await User.findByPk(req.params.id, {
+      include: [{ model: Department, as: 'department' }]
+    });
+    
+    res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
-
-
 
 // Get all departments
 app.get('/api/departments', async (req, res) => {
