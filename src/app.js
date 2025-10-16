@@ -23,14 +23,14 @@ app.get('/api/users', async (req, res) => {
         { first_name: { [Op.like]: `%${search}%` } },
         { last_name: { [Op.like]: `%${search}%` } },
         { email: { [Op.like]: `%${search}%` } },
-        {role: { [Op.like]: `%${search}%` }},
-        {department: { [Op.like]: `%${search}%` }},
         sequelize.where(
           sequelize.fn('CONCAT', sequelize.col('first_name'), ' ', sequelize.col('last_name')),
           { [Op.like]: `%${search}%` }
         )
       ]
     } : {};
+    console.log('Where clause:', JSON.stringify(whereClause, null, 2));
+
     const { count, rows } = await User.findAndCountAll({
       where: whereClause,
       include: [{ 
@@ -39,7 +39,7 @@ app.get('/api/users', async (req, res) => {
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['id', 'DESC']]
+      order: [['id', 'ASC']]
     });
     
     res.json({
@@ -56,10 +56,12 @@ app.get('/api/users', async (req, res) => {
 // Get user by ID
 app.get('/api/users/:id', async (req, res) => {
   try {
+    console.log('Fetching user with ID:', req.params.id);
     const user = await User.findOne({
       where: { id: req.params.id },
       include: [{ model: Department, as: 'department' }]
     });
+    console.log('Found user:', user ? 'Yes' : 'No');
     if (user) {
       res.json(user);
     } else {
@@ -98,8 +100,6 @@ app.put('/api/users/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-
 
 // Get all departments
 app.get('/api/departments', async (req, res) => {
