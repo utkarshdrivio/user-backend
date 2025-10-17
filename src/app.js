@@ -6,7 +6,7 @@ const Department = require('./models/Department');
 const sequelize = require('./models/database');
 
 const app = express();
-const PORT = 3001;
+
 
 app.use(cors());
 app.use(express.json());
@@ -117,11 +117,10 @@ app.get('/api/departments', async (req, res) => {
 sequelize.authenticate()
   .then(() => {
     console.log('Database connected successfully');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
   })
   .catch(err => {
     console.error('Database connection failed:', err);
-    process.exit(1);
   });
+
+// 👇 Add this at the very end of the file
+module.exports = app;
