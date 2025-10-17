@@ -39,7 +39,7 @@ app.get('/api/users', async (req, res) => {
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['id', 'ASC']]
+      order: [['id', 'DESC']]
     });
     
     res.json({
