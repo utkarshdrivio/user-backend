@@ -5,7 +5,7 @@ const Department = require('./models/Department');
 const sequelize = require('./models/database');
 
 const app = express();
-
+const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -20,22 +20,6 @@ app.get('/api/users', async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
     
-<<<<<<< HEAD
-=======
-    const whereClause = search ? {
-      [Op.or]: [
-        { first_name: { [Op.like]: `%${search}%` } },
-        { last_name: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } },
-        sequelize.where(
-          sequelize.fn('CONCAT', sequelize.col('first_name'), ' ', sequelize.col('last_name')),
-          { [Op.like]: `%${search}%` }
-        )
-      ]
-    } : {};
-    console.log('Where clause:', JSON.stringify(whereClause, null, 2));
-
->>>>>>> ee0c9b251fb4f76fddce21af540ba77534f0f06d
     const { count, rows } = await User.findAndCountAll({
       include: [{ 
         model: Department, 
@@ -44,7 +28,7 @@ app.get('/api/users', async (req, res) => {
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['id', 'DESC']]
+      order: [['id', 'ASC']]
     });
     
     res.json({
@@ -62,17 +46,9 @@ app.get('/api/users', async (req, res) => {
 // Get user by ID
 app.get('/api/users/:id', async (req, res) => {
   try {
-<<<<<<< HEAD
     const user = await User.findByPk(req.params.id, {
       include: [{ model: Department, as: 'department', required: false }]
-=======
-    console.log('Fetching user with ID:', req.params.id);
-    const user = await User.findOne({
-      where: { id: req.params.id },
-      include: [{ model: Department, as: 'department' }]
->>>>>>> ee0c9b251fb4f76fddce21af540ba77534f0f06d
     });
-    console.log('Found user:', user ? 'Yes' : 'No');
     if (user) {
       res.json(user);
     } else {
@@ -130,10 +106,11 @@ app.get('/api/departments', async (req, res) => {
 sequelize.authenticate()
   .then(() => {
     console.log('Database connected successfully');
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   })
   .catch(err => {
     console.error('Database connection failed:', err);
+    process.exit(1);
   });
-
-// 👇 Add this at the very end of the file
-module.exports = app;
