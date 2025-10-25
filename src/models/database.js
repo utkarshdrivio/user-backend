@@ -1,3 +1,4 @@
+// Om shree Ganeshay namah:
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 

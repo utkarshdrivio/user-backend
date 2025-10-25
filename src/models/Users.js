@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./database');
-const Departments = require('./Department');
 
 const Users = sequelize.define('Users', {
   id: {
@@ -35,11 +34,7 @@ const Users = sequelize.define('Users', {
   },
   dept_id: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: Departments,
-      key: 'id'
-    }
+    allowNull: true
   },
   role: {
     type: DataTypes.STRING(100),
@@ -57,10 +52,6 @@ const Users = sequelize.define('Users', {
     type: DataTypes.FLOAT,
     allowNull: true
   },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
   tags: {
     type: DataTypes.STRING(255),
     allowNull: true
@@ -69,7 +60,11 @@ const Users = sequelize.define('Users', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
-  availability_time: {
+  availability_start: {
+    type: DataTypes.TIME,
+    allowNull: true
+  },
+  availability_end: {
     type: DataTypes.TIME,
     allowNull: true
   },
@@ -84,17 +79,10 @@ const Users = sequelize.define('Users', {
   agreement: {
     type: DataTypes.BOOLEAN,
     allowNull: true
-  },
-
+  }
 }, {
   tableName: 'users',
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-  timestamps: true 
-
+  timestamps: false
 });
-
-Users.belongsTo(Departments, { foreignKey: 'dept_id', as: 'department' });
-Departments.hasMany(Users, { foreignKey: 'dept_id', as: 'users' });
 
 module.exports = Users;

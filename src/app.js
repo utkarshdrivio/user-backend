@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { Op } = require('sequelize');
 const User = require('./models/Users');
 const Department = require('./models/Department');
 const sequelize = require('./models/database');
@@ -11,31 +10,21 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
+// Setup relationships
+User.belongsTo(Department, { foreignKey: 'dept_id', as: 'department' });
+Department.hasMany(User, { foreignKey: 'dept_id', as: 'users' });
+
 // Get all users
 app.get('/api/users', async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '' } = req.query;
+    const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
-    console.log('Search term:', search);
     
-    const whereClause = search ? {
-      [Op.or]: [
-        { first_name: { [Op.like]: `%${search}%` } },
-        { last_name: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } },
-        {role: { [Op.like]: `%${search}%` }},
-        {department: { [Op.like]: `%${search}%` }},
-        sequelize.where(
-          sequelize.fn('CONCAT', sequelize.col('first_name'), ' ', sequelize.col('last_name')),
-          { [Op.like]: `%${search}%` }
-        )
-      ]
-    } : {};
     const { count, rows } = await User.findAndCountAll({
-      where: whereClause,
       include: [{ 
         model: Department, 
-        as: 'department'
+        as: 'department',
+        required: false
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
@@ -49,6 +38,7 @@ app.get('/api/users', async (req, res) => {
       totalUsers: count
     });
   } catch (error) {
+    console.error('Users API Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -56,9 +46,8 @@ app.get('/api/users', async (req, res) => {
 // Get user by ID
 app.get('/api/users/:id', async (req, res) => {
   try {
-    const user = await User.findOne({
-      where: { id: req.params.id },
-      include: [{ model: Department, as: 'department' }]
+    const user = await User.findByPk(req.params.id, {
+      include: [{ model: Department, as: 'department', required: false }]
     });
     if (user) {
       res.json(user);
@@ -66,6 +55,7 @@ app.get('/api/users/:id', async (req, res) => {
       res.status(404).json({ error: 'User not found' });
     }
   } catch (error) {
+    console.error('Get User Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -76,6 +66,7 @@ app.post('/api/users', async (req, res) => {
     const user = await User.create(req.body);
     res.status(201).json(user);
   } catch (error) {
+    console.error('Create User Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -83,23 +74,20 @@ app.post('/api/users', async (req, res) => {
 // Update user
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const [updated] = await User.update(req.body, {
+    await User.update(req.body, {
       where: { id: req.params.id }
     });
-    if (updated) {
-      const user = await User.findByPk(req.params.id, {
-        include: [{ model: Department, as: 'department' }]
-      });
-      res.json(user);
-    } else {
-      res.status(404).json({ error: 'User not found' });
-    }
+    
+    const user = await User.findByPk(req.params.id, {
+      include: [{ model: Department, as: 'department', required: false }]
+    });
+    
+    res.json(user);
   } catch (error) {
+    console.error('Update User Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
-
-
 
 // Get all departments
 app.get('/api/departments', async (req, res) => {
@@ -109,6 +97,7 @@ app.get('/api/departments', async (req, res) => {
     });
     res.json(departments);
   } catch (error) {
+    console.error('Departments Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
