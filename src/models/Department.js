@@ -25,4 +25,9 @@ const Department = sequelize.define('Department', {
   timestamps: false
 });
 
+// Setup relationships
+Department.associate = (models) => {
+  Department.hasMany(models.User, { foreignKey: 'dept_id', as: 'users' });
+};
+
 module.exports = Department;
