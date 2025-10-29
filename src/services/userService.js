@@ -1,6 +1,7 @@
 const User = require('../models/Users');
 const Department = require('../models/Department');
 const sequelize = require('../models/database');
+const { Op } = require('sequelize');
 
 class UserService {
   async getAllUsers(queryParams) {
@@ -10,14 +11,14 @@ class UserService {
     const whereClause = {};
     
     if (name) {
-      whereClause[sequelize.Op.or] = [
-        { first_name: { [sequelize.Op.like]: `%${name}%` } },
-        { last_name: { [sequelize.Op.like]: `%${name}%` } }
+      whereClause[Op.or] = [
+        { first_name: { [Op.like]: `%${name}%` } },
+        { last_name: { [Op.like]: `%${name}%` } }
       ];
     }
-    if (phone) whereClause.phone = { [sequelize.Op.like]: `%${phone}%` };
-    if (email) whereClause.email = { [sequelize.Op.like]: `%${email}%` };
-    if (role) whereClause.role = { [sequelize.Op.like]: `%${role}%` };
+    if (phone) whereClause.phone = { [Op.like]: `%${phone}%` };
+    if (email) whereClause.email = { [Op.like]: `%${email}%` };
+    if (role) whereClause.role = { [Op.like]: `%${role}%` };
     if (department) whereClause.dept_id = department;
     if (status !== undefined && status !== '') whereClause.is_active = status === 'true';
     if (joiningDate) whereClause.joining_date = joiningDate;
