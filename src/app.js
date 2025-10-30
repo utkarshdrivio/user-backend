@@ -1,33 +1,29 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const User = require('./models/Users');
 const Department = require('./models/Department');
 const sequelize = require('./models/database');
-const userRoutes = require('./routes/userRoutes');
-const departmentRoutes = require('./routes/departmentRoutes');
 
 const app = express();
-const PORT = 3001;
 
-app.use(cors());
-app.use(express.json());
+app.use(cors(), express.json());
+app.use((req, res, next) => { console.log(`${req.method} ${req.url}`); next(); });
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Setup model associations
-const models = { User, Department };
-User.associate && User.associate(models);
-Department.associate && Department.associate(models);
+// Model associations
+User.associate?.({ User, Department });
+Department.associate?.({ User, Department });
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/departments', departmentRoutes);
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/departments', require('./routes/departmentRoutes'));
 
 // Start server
 sequelize.authenticate()
   .then(() => {
-    console.log('Database connected successfully');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    console.log('Database connected');
+    app.listen(3001, () => console.log('Server running on port 3001'));
   })
   .catch(err => {
     console.error('Database connection failed:', err);

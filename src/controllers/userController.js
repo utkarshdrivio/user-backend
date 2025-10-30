@@ -1,49 +1,54 @@
 const userService = require('../services/userService');
 
-class UserController {
+const cleanData = (data) => {
+  Object.keys(data).forEach(key => {
+    if (data[key] === 'undefined' || data[key] === undefined) {
+      delete data[key];
+    }
+  });
+  return data;
+};
+
+const addFiles = (userData, files) => {
+  if (files?.resume) userData.resume = files.resume[0].path;
+  if (files?.profilePicture) userData.profile_picture = files.profilePicture[0].path;
+};
+
+module.exports = {
   async getAllUsers(req, res) {
     try {
-      const result = await userService.getAllUsers(req.query);
-      res.json(result);
+      res.json(await userService.getAllUsers(req.query));
     } catch (error) {
-      console.error('Users API Error:', error);
       res.status(500).json({ error: error.message });
     }
-  }
+  },
 
   async getUserById(req, res) {
     try {
       const user = await userService.getUserById(req.params.id);
-      if (user) {
-        res.json(user);
-      } else {
-        res.status(404).json({ error: 'User not found' });
-      }
+      user ? res.json(user) : res.status(404).json({ error: 'User not found' });
     } catch (error) {
-      console.error('Get User Error:', error);
       res.status(500).json({ error: error.message });
     }
-  }
+  },
 
   async createUser(req, res) {
     try {
-      const user = await userService.createUser(req.body);
-      res.status(201).json(user);
+      const userData = cleanData({ ...req.body });
+      addFiles(userData, req.files);
+      res.status(201).json(await userService.createUser(userData));
     } catch (error) {
-      console.error('Create User Error:', error);
       res.status(500).json({ error: error.message });
     }
-  }
+  },
 
   async updateUser(req, res) {
     try {
-      const user = await userService.updateUser(req.params.id, req.body);
-      res.json(user);
+      const userData = cleanData({ ...req.body });
+      addFiles(userData, req.files);
+      res.json(await userService.updateUser(req.params.id, userData));
     } catch (error) {
-      console.error('Update User Error:', error);
       res.status(500).json({ error: error.message });
     }
   }
-}
-
-module.exports = new UserController();
+};
