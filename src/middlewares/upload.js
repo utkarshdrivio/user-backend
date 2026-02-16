@@ -1,9 +1,10 @@
 const multer = require('multer');
 const path = require('path');
+const config = require('../config');
 
 module.exports = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
+    destination: (req, file, cb) => cb(null, config.upload.destination),
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
@@ -11,10 +12,10 @@ module.exports = multer({
   }),
   fileFilter: (req, file, cb) => {
     const isValidFile = 
-      (file.fieldname === 'resume' && file.mimetype === 'application/pdf') ||
-      (file.fieldname === 'profilePicture' && file.mimetype.startsWith('image/'));
+      (file.fieldname === 'resume' && config.upload.allowedDocTypes.includes(file.mimetype)) ||
+      (file.fieldname === 'profilePicture' && config.upload.allowedImageTypes.includes(file.mimetype));
     
     cb(isValidFile ? null : new Error('Invalid file type'), isValidFile);
   },
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: { fileSize: config.upload.maxFileSize }
 });
