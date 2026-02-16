@@ -1,16 +1,16 @@
 // Om shree Ganeshay namah:
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
+const config = require('../config');
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
+  config.db.name,
+  config.db.user,
+  config.db.password,
   {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql',
-    logging: false
+    host: config.db.host,
+    port: config.db.port,
+    dialect: config.db.dialect,
+    logging: config.db.logging
   }
 );
 
